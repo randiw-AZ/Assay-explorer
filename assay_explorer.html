@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Endocrine Assay Explorer</title>
+<style>
+  :root{
+    --ua-red:#AB0520;
+    --ua-red-dark:#7C0417;
+    --ua-blue:#0C234B;
+    --ua-blue-light:#33547E;
+    --paper:#F7F5F0;
+    --card:#FFFFFF;
+    --ink:#1D1D1D;
+    --ink-soft:#4A4A4A;
+    --line:#D8D3C8;
+    --tint:#E9EEF5;
+    --ok:#2E6B44;
+    --ok-bg:#E7F1EA;
+    --warn:#8A5A1E;
+    --warn-bg:#F5EBDD;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:Georgia,'Iowan Old Style','Times New Roman',serif;
+    line-height:1.55;
+  }
+  .sans{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;}
+  .wrap{max-width:860px;margin:0 auto;padding:0 20px 80px;}
+
+  header.hero{
+    background:var(--ua-blue);
+    color:#fff;
+    padding:40px 20px 0;
+    border-bottom:6px solid var(--ua-red);
+  }
+  header.hero .hero-inner{max-width:860px;margin:0 auto;padding:0 20px 26px;}
+  header.hero h1{
+    font-size:1.9rem;
+    margin:0 0 8px;
+    letter-spacing:0.2px;
+  }
+  header.hero p{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;
+    color:#CBD6E6;
+    font-size:1.02rem;
+    max-width:640px;
+    margin:0;
+  }
+
+  /* ---- Tabs ---- */
+  nav.tabs{
+    background:var(--ua-blue);
+    position:sticky;
+    top:0;
+    z-index:20;
+    border-bottom:1px solid rgba(255,255,255,0.15);
+  }
+  nav.tabs .tabs-inner{
+    max-width:860px;
+    margin:0 auto;
+    padding:0 20px;
+    display:flex;
+    flex-wrap:wrap;
+    gap:2px;
+  }
+  .tab-btn{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;
+    background:transparent;
+    border:none;
+    color:#B9C6DA;
+    padding:14px 16px;
+    font-size:0.92rem;
+    font-weight:600;
+    cursor:pointer;
+    border-bottom:3px solid transparent;
+  }
+  .tab-btn:hover{color:#fff;}
+  .tab-btn.active{
+    color:#fff;
+    border-bottom:3px solid var(--ua-red);
+  }
+
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
+
+  section{margin-top:44px;}
+  h2{
+    color:var(--ua-blue);
+    font-size:1.5rem;
+    border-bottom:2px solid var(--line);
+    padding-bottom:8px;
+    margin-bottom:18px;
+  }
+  h3{color:var(--ua-blue); font-size:1.15rem; margin:0 0 6px;}
+
+  .card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:22px 24px;
+  }
+
+  .intro-card{border-left:5px solid var(--ua-red); margin-top:32px;}
+  .intro-card p{margin:0 0 12px;}
+  .intro-card p:last-child{margin-bottom:0;}
+
+  .example-tag{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    background:var(--ua-blue);
+    color:#fff;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;
+    font-size:0.82rem;
+    font-weight:600;
+    padding:5px 14px;
+    border-radius:20px;
+    margin-bottom:16px;
+  }
+  .example-tag .label{color:#B9C6DA; font-weight:400;}
+
+  .key-terms{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px 20px;
+    margin-top:16px;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;
+    font-size:0.92rem;
+  }
+  .key-terms div{background:var(--tint); padding:10px 12px; border-radius:3px;}
+  .key-terms b{color:var(--ua-blue);}
+  @media (max-width:560px){.key-terms{grid-template-columns:1fr;}}
+
+  /* ---- Step ordering activity ---- */
+  .step-list{
+    list-style:none;
+    margin:0;
+    padding:0;
+  }
+  .step-list li{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-left:5px solid var(--ua-blue-light);
+    border-radius:4px;
+    margin-bottom:10px;
+    padding:14px 14px 14px 16px;
+    display:flex;
+    align-items:center;
+    gap:14px;
+    cursor:grab;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;
+    font-size:0.98rem;
+    transition:border-color .2s, background .2s;
+  }
+  .step-list li:active{cursor:grabbing;}
+  .step-list li.dragging{opacity:0.4;}
+  .step-list li.correct{border-left-color:var(--ok); background:var(--ok-bg);}
+  .step-list li.incorrect{border-left-color:var(--warn); background:var(--warn-bg);}
+
+  .slot-num{
+    flex:0 0 30px;
+    height:30px;
+    border-radius:50%;
+    background:var(--ua-blue);
+    color:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:bold;
+    font-size:0.9rem;
+  }
+  .step-text{flex:1;}
+  .step-controls{display:flex; flex-direction:column; gap:2px;}
+  .step-controls button{
+    border:1px solid var(--line);
+    background:#fff;
+    border-radius:3px;
+    width:26px;
+    height:22px;
+    cursor:pointer;
+    font-size:0.75rem;
+    line-height:1;
+    color:var(--ua-blue);
+  }
+  .step-controls button:hover{background:var(--tint);}
+
+  .btn-row{
+    margin-top:18px;
+    display:flex;
+    gap:12px;
+    flex-wrap:wrap;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;
+  }
+  button.action{
+    border:none;
+    padding:11px 20px;
+    border-radius:3px;
+    font-size:0.95rem;
+    font-weight:600;
+    cursor:pointer;
+  }
+  button.primary{background:var(--ua-red); color:#fff;}
+  button.primary:hover{background:var(--ua-red-dark);}
+  button.secondary{background:transparent; color:var(--ua-blue); border:1px solid var(--ua-blue);}
+  button.secondary:hover{background:var(--tint);}
+
+  .order-feedback{
+    margin-top:16px;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;
+    font-size:0.95rem;
+    padding:12px 14px;
+    border-radius:4px;
+    display:none;
+  }
+  .order-feedback.show{display:block;}
+  .order-feedback.all-correct{background:var(--ok-bg); color:var(--ok); border:1px solid var(--ok);}
+  .order-feedback.some-wrong{background:var(--warn-bg); color:var(--warn); border:1px solid var(--warn);}
+
+  .correct-order-reveal{
+    margin-top:18px;
+    display:none;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;
+    font-size:0.92rem;
+  }
+  .correct-order-reveal.show{display:block;}
+  .correct-order-reveal ol{padding-left:22px;}
+  .correct-order-reveal li{margin-bottom:10px;}
+  .correct-order-reveal .why{color:var(--ink-soft); font-style:italic;}
+
+  /* ---- Scenario questions ---- */
+  .scenario{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:4px;
+    margin-bottom:16px;
+    overflow:hidden;
+  }
+  .scenario-q{
+    padding:18px 20px;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;
+  }
+  .scenario-q h3{margin-bottom:10px;}
+  .options{display:flex; flex-direction:column; gap:8px; margin-top:10px;}
+  .option label{
+    display:flex;
+    gap:10px;
+    padding:9px 12px;
+    border:1px solid var(--line);
+    border-radius:3px;
+    cursor:pointer;
+    font-size:0.93rem;
+  }
+  .option label:hover{background:var(--tint);}
+  .option input{margin-top:3px;}
+  .option.picked-correct label{background:var(--ok-bg); border-color:var(--ok);}
+  .option.picked-incorrect label{background:var(--warn-bg); border-color:var(--warn);}
+
+  .explain{
+    margin-top:12px;
+    padding:12px 14px;
+    border-radius:3px;
+    background:var(--tint);
+    border-left:4px solid var(--ua-blue);
+    font-size:0.92rem;
+    display:none;
+  }
+  .explain.show{display:block;}
+  .explain.is-correct{background:var(--ok-bg); border-left-color:var(--ok);}
+  .explain.is-incorrect{background:var(--warn-bg); border-left-color:var(--warn);}
+  .explain .verdict{
+    display:block;
+    font-weight:700;
+    margin-bottom:6px;
+    font-size:0.95rem;
+  }
+  .explain.is-correct .verdict{color:var(--ok);}
+  .explain.is-incorrect .verdict{color:var(--warn);}
+
+  .progress-note{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;
+    font-size:0.85rem;
+    color:var(--ink-soft);
+    margin-bottom:14px;
+  }
+
+  .coming-soon{
+    margin-top:32px;
+    padding:40px 24px;
+    text-align:center;
+    border:1px dashed var(--line);
+    border-radius:4px;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;
+    color:var(--ink-soft);
+  }
+
+  footer{
+    margin-top:56px;
+    padding-top:20px;
+    border-top:1px solid var(--line);
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;
+    font-size:0.82rem;
+    color:var(--ink-soft);
+    text-align:center;
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-inner">
+    <h1>Endocrine Assay Explorer</h1>
+    <p>Work out the order of operations for each assay, then see what happens when a step goes missing.</p>
+  </div>
+</header>
+
+<nav class="tabs">
+  <div class="tabs-inner">
+    <button class="tab-btn active" data-target="ria">Radioimmunoassay</button>
+    <button class="tab-btn" data-target="celisa">Competitive ELISA</button>
+    <button class="tab-btn" data-target="selisa">Sandwich ELISA</button>
+    <button class="tab-btn" data-target="lfa">Lateral Flow Assay</button>
+  </div>
+</nav>
+
+<div class="wrap">
+
+  <section class="tab-panel active" id="panel-ria">
+    <div class="card intro-card">
+      <div class="example-tag"><span class="label">Class example:</span> Thyroid hormone</div>
+      <p><strong>The idea behind RIA:</strong> a fixed amount of antibody (Ab) is offered a fixed amount of radiolabeled hormone (*H) — enough to fill every binding site. When unlabeled hormone (H) is introduced, it competes with *H for those same sites. The more unlabeled hormone present, the less *H ends up bound. Measuring how much *H is bound (versus free) tells you, indirectly, how much unlabeled hormone was there to begin with.</p>
+      <p>Because every step changes what gets measured downstream, getting the sequence right — and understanding what each step protects against — matters more than memorizing it.</p>
+      <div class="key-terms">
+        <div><b>Ab</b> — primary antibody, fixed amount</div>
+        <div><b>*H</b> — radiolabeled hormone (tracer)</div>
+        <div><b>H</b> — unlabeled hormone (standard or patient sample)</div>
+        <div><b>Bound fraction</b> — Ab-hormone complex, becomes the pellet</div>
+        <div><b>Free fraction</b> — unbound hormone, stays in the supernatant</div>
+        <div><b>Standard curve</b> — bound signal plotted against known H concentrations</div>
+      </div>
+    </div>
+
+    <section>
+      <h2>Put the steps in order</h2>
+      <p class="progress-note">Drag and drop each step, or use the arrows, until the sequence matches how an RIA actually runs. Then check your answer.</p>
+      <ul class="step-list" id="step-list-ria"></ul>
+      <div class="btn-row">
+        <button class="action primary" data-action="check" data-assay="ria">Check my order</button>
+        <button class="action secondary" data-action="reveal" data-assay="ria">Show correct order</button>
+        <button class="action secondary" data-action="reset" data-assay="ria">Shuffle again</button>
+      </div>
+      <div class="order-feedback sans" id="order-feedback-ria"></div>
+      <div class="correct-order-reveal card" id="correct-order-reveal-ria"></div>
+    </section>
+
+    <section>
+      <h2>What if a step were skipped?</h2>
+      <p class="progress-note">Pick the outcome you think is most accurate, then read the explanation. There's no single "trick" — each step is protecting a specific part of the measurement.</p>
+      <div id="scenario-container-ria"></div>
+    </section>
+  </section>
+
+  <section class="tab-panel" id="panel-celisa">
+    <div class="card intro-card">
+      <div class="example-tag"><span class="label">Class example:</span> Estradiol</div>
+      <p><strong>The idea behind competitive ELISA:</strong> instead of a radioactive tracer, the "label" is an enzyme (horseradish peroxidase, HRP) attached to hormone. A fixed amount of antibody is coated onto the plate, and unlabeled hormone (from a standard or a patient sample) competes with HRP-labeled hormone for those antibody sites. After washing away everything that isn't bound, a substrate is added that the enzyme converts into a colored product — so the amount of color reflects how much labeled hormone stayed bound.</p>
+      <p>Just like RIA, this is a competitive assay: the more unlabeled hormone present, the less labeled hormone ends up bound, and the weaker the color signal. Less color means more hormone in the sample.</p>
+      <div class="key-terms">
+        <div><b>Ab</b> — antibody coated onto the well</div>
+        <div><b>H</b> — unlabeled hormone (standard or patient sample)</div>
+        <div><b>HRP–H</b> — enzyme-conjugated (labeled) hormone</div>
+        <div><b>TMB</b> — substrate that turns color when acted on by HRP</div>
+        <div><b>Stop solution (acid)</b> — halts the color reaction at a fixed point</div>
+        <div><b>OD450</b> — optical density read at 450 nm; proportional to bound HRP–H</div>
+      </div>
+    </div>
+
+    <section>
+      <h2>Put the steps in order</h2>
+      <p class="progress-note">Drag and drop each step, or use the arrows, until the sequence matches how a competitive ELISA actually runs. Then check your answer.</p>
+      <ul class="step-list" id="step-list-celisa"></ul>
+      <div class="btn-row">
+        <button class="action primary" data-action="check" data-assay="celisa">Check my order</button>
+        <button class="action secondary" data-action="reveal" data-assay="celisa">Show correct order</button>
+        <button class="action secondary" data-action="reset" data-assay="celisa">Shuffle again</button>
+      </div>
+      <div class="order-feedback sans" id="order-feedback-celisa"></div>
+      <div class="correct-order-reveal card" id="correct-order-reveal-celisa"></div>
+    </section>
+
+    <section>
+      <h2>What if a step were skipped?</h2>
+      <p class="progress-note">Pick the outcome you think is most accurate, then read the explanation.</p>
+      <div id="scenario-container-celisa"></div>
+    </section>
+  </section>
+
+  <section class="tab-panel" id="panel-selisa">
+    <div class="card intro-card">
+      <div class="example-tag"><span class="label">Class example:</span> Insulin</div>
+      <p><strong>The idea behind sandwich ELISA:</strong> a fixed primary antibody (Ab1) coats the well and captures hormone from the sample. A second antibody (Ab2), labeled with biotin, then binds a <em>different</em> site on that same captured hormone molecule — sandwiching the hormone between two antibodies. An enzyme (HRP) is recruited onto the biotin, and it's that enzyme that eventually produces the color signal.</p>
+      <p>This is a key contrast with RIA and competitive ELISA: there's no competition here. More hormone in the sample means more sandwich complexes form, which means more enzyme gets recruited, which means <em>more</em> color — OD is directly proportional to hormone concentration, not inversely proportional. (It's also why sandwich ELISA only works for hormones large enough to have two separate antibody-binding sites — small hormones like steroids typically need a competitive format instead.)</p>
+      <div class="key-terms">
+        <div><b>Ab1</b> — primary (capture) antibody coated on the well</div>
+        <div><b>H</b> — hormone (standard or patient sample); needs two distinct binding sites</div>
+        <div><b>Ab2–biotin</b> — secondary (detection) antibody, labeled with biotin</div>
+        <div><b>HRP</b> — enzyme that binds the biotin label and generates the color signal</div>
+        <div><b>TMB</b> — substrate that turns color when acted on by HRP</div>
+        <div><b>OD450</b> — optical density read at 450 nm; directly proportional to hormone present</div>
+      </div>
+    </div>
+
+    <section>
+      <h2>Put the steps in order</h2>
+      <p class="progress-note">Drag and drop each step, or use the arrows, until the sequence matches how a sandwich ELISA actually runs. Then check your answer.</p>
+      <ul class="step-list" id="step-list-selisa"></ul>
+      <div class="btn-row">
+        <button class="action primary" data-action="check" data-assay="selisa">Check my order</button>
+        <button class="action secondary" data-action="reveal" data-assay="selisa">Show correct order</button>
+        <button class="action secondary" data-action="reset" data-assay="selisa">Shuffle again</button>
+      </div>
+      <div class="order-feedback sans" id="order-feedback-selisa"></div>
+      <div class="correct-order-reveal card" id="correct-order-reveal-selisa"></div>
+    </section>
+
+    <section>
+      <h2>What if a step were skipped?</h2>
+      <p class="progress-note">Pick the outcome you think is most accurate, then read the explanation.</p>
+      <div id="scenario-container-selisa"></div>
+    </section>
+  </section>
+
+  <section class="tab-panel" id="panel-lfa">
+    <div class="card intro-card">
+      <div class="example-tag"><span class="label">Class example:</span> hCG — home pregnancy test</div>
+      <p><strong>The idea behind a lateral flow assay:</strong> unlike the first three assays, there's no technician mixing reagents step by step. Everything is pre-loaded onto the strip, and capillary action does the work once a sample is applied. Urine is applied at the <em>reaction site</em>, where a free (mobile) anti-hCG antibody linked to a dye enzyme is waiting. If hCG is present, it binds this antibody as both are carried along the strip.</p>
+      <p>At the <em>test site</em>, a fixed anti-hCG antibody captures any hCG–antibody complexes that reach it, and the enzyme they carry converts TMB from clear to blue — producing the visible test line. Any free anti-hCG antibody left over continues on to the <em>control site</em>, where a fixed anti-primary antibody captures the free anti-hCG antibody even though it's not carrying hCG, turning that TMB blue as well. So the control line should always appear if the strip is working correctly, while the test line only appears when hCG is actually present.</p>
+      <div class="key-terms">
+        <div><b>Reaction site</b> — holds free, mobile anti-hCG antibody linked to a dye enzyme</div>
+        <div><b>Test site (T line)</b> — fixed anti-hCG antibody; captures hCG–antibody complexes</div>
+        <div><b>Control site (C line)</b> — fixed anti-primary antibody; captures any free antibody</div>
+        <div><b>TMB</b> — dye substrate, converted from clear to blue by the enzyme</div>
+        <div><b>hCG</b> — human chorionic gonadotropin, the hormone being detected</div>
+        <div><b>Capillary action</b> — the passive flow that moves everything along the strip</div>
+      </div>
+    </div>
+
+    <section>
+      <h2>Put the steps in order</h2>
+      <p class="progress-note">This sequence reflects what happens on the strip when hCG <em>is</em> present in the sample. Drag and drop each step, or use the arrows, until it matches how the assay actually flows. (If hCG were absent, the order would be the same — steps 3–5 just wouldn't produce a color change at the test line.)</p>
+      <ul class="step-list" id="step-list-lfa"></ul>
+      <div class="btn-row">
+        <button class="action primary" data-action="check" data-assay="lfa">Check my order</button>
+        <button class="action secondary" data-action="reveal" data-assay="lfa">Show correct order</button>
+        <button class="action secondary" data-action="reset" data-assay="lfa">Shuffle again</button>
+      </div>
+      <div class="order-feedback sans" id="order-feedback-lfa"></div>
+      <div class="correct-order-reveal card" id="correct-order-reveal-lfa"></div>
+    </section>
+
+    <section>
+      <h2>What if something went wrong?</h2>
+      <p class="progress-note">Pick the outcome you think is most accurate, then read the explanation.</p>
+      <div id="scenario-container-lfa"></div>
+    </section>
+  </section>
+
+  <footer>
+    Endocrine Assay Explorer
+  </footer>
+
+</div>
+
+<script>
+// ============================================================
+// TAB SWITCHING
+// ============================================================
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-' + btn.dataset.target).classList.add('active');
+  });
+});
+
+// ============================================================
+// ASSAY DATA
+// ============================================================
+const assays = {};
+
+assays.ria = {
+  steps: [
+    { id:1, text:"Set up a series of test tubes with the same amount of primary antibody (Ab) and enough radiolabeled hormone (*H) to saturate all antibody binding sites.", why:"This establishes a fixed, identical starting point in every tube — otherwise you're not comparing like with like." },
+    { id:2, text:"Add unlabeled hormone (H) at known concentrations (for the standard curve) or from a patient sample.", why:"This is the variable being tested — the whole assay exists to figure out how much H is present." },
+    { id:3, text:"H competes with *H for the limited antibody binding sites.", why:"More H means more sites get occupied by unlabeled hormone instead of the tracer — this is the mechanism the assay relies on." },
+    { id:4, text:"Allow the reaction to reach equilibrium.", why:"Binding needs time to stabilize before you measure it, or the readings won't reflect a fair competition." },
+    { id:5, text:"Centrifuge the tubes to separate bound *H/H (pellet) from free/unbound *H/H (supernatant).", why:"This is the physical step that actually creates two distinct, separable fractions." },
+    { id:6, text:"Remove the supernatant to eliminate the unbound *H.", why:"Only the bound fraction should remain — leftover free tracer would contaminate the reading." },
+    { id:7, text:"Measure the radioactivity remaining in the bound fraction (pellet) with a scintillation counter.", why:"This converts the biology into a number — the actual signal you'll analyze." },
+    { id:8, text:"Use the standard tubes' results to build a standard curve.", why:"You need a calibration curve — signal vs. known concentration — before any unknown value means anything." },
+    { id:9, text:"Compare the patient sample's signal to the standard curve to calculate the hormone concentration.", why:"This is the payoff step: converting a measured signal into a clinically meaningful concentration." }
+  ],
+  scenarios: [
+    {
+      q: "The technician forgets to centrifuge the tubes, but still removes the supernatant as usual. What happens?",
+      options: [
+        { text:"Nothing changes — the antibody-bound complex settles on its own without centrifugation.", correct:false,
+          feedback:"Not on the timescale of this assay. A fine antibody–hormone complex won't fully settle out by gravity alone — that's exactly why centrifugation is a separate, necessary step. Give it another look." },
+        { text:"There's no pellet to keep, because bound and free fractions were never physically separated — removing the liquid removes almost the entire sample, bound and free alike.", correct:true,
+          feedback:"Centrifugation is what creates two distinct fractions — a solid pellet (bound Ab–hormone complex) and a liquid supernatant (free, unbound hormone). Without it, everything is still one mixed solution, so \"removing the supernatant\" just discards most of the tube's contents indiscriminately, leaving little or nothing to measure in the scintillation counter." },
+        { text:"Only the unbound *H is removed, exactly as intended.", correct:false,
+          feedback:"Selective removal requires the two fractions to already be separated. With no pellet formed, there's no way to remove only the free portion — everything is still mixed together. Try again." },
+        { text:"The radioactivity reading comes out artificially high.", correct:false,
+          feedback:"It's the opposite direction — losing most of the sample tends to leave too little to measure, not too much. Think about what's physically left in the tube after the liquid is poured off. Try again." }
+      ]
+    },
+    {
+      q: "A tube is prepared with antibody and unlabeled hormone, but the radiolabeled hormone (*H) is left out entirely. What happens?",
+      options: [
+        { text:"The assay still works because unlabeled hormone alone can be detected by the scintillation counter.", correct:false,
+          feedback:"Unlabeled hormone isn't radioactive, so a scintillation counter has no way to detect it no matter how the rest of the assay is run. Take another look." },
+        { text:"The standard curve becomes steeper than expected.", correct:false,
+          feedback:"A steeper or shallower curve still assumes there's a curve to plot. Without any radioactive signal at all, there's nothing to graph in the first place. Try again." },
+        { text:"There's no tracer to compete for binding sites or to detect afterward — the scintillation counter has nothing radioactive to register.", correct:true,
+          feedback:"*H is the signal the entire assay is built around — it's the only radioactive species. Without it, there is no tracer to compete with unlabeled hormone, and nothing for the scintillation counter to detect in the bound fraction. The competitive-binding logic that makes RIA work depends entirely on *H being present from the very first step." },
+        { text:"The antibody binds unlabeled hormone twice as strongly to compensate.", correct:false,
+          feedback:"Antibody binding affinity is a fixed property of the antibody — it doesn't change based on what else is missing from the tube. Try again." }
+      ]
+    },
+    {
+      q: "The lab runs the patient sample tubes but skips preparing the tubes with known concentrations of unlabeled hormone. What's the consequence?",
+      options: [
+        { text:"The patient's radioactivity reading can still be measured, but there's no standard curve to convert that signal into a hormone concentration.", correct:true,
+          feedback:"The standard curve is the calibration tool that relates a known amount of unlabeled hormone to a measurable amount of bound *H. Without tubes of known concentration, you can still get a number off the scintillation counter for the patient tube — but that number is meaningless on its own, because there's nothing to compare it against." },
+        { text:"The patient sample automatically calibrates itself against the antibody.", correct:false,
+          feedback:"The antibody has no built-in way to report a concentration — that conversion can only come from comparing the signal to a curve built with known amounts of hormone. Try again." },
+        { text:"Radioactivity in the patient tube reads as zero.", correct:false,
+          feedback:"The patient tube still has *H, antibody, and a real bound fraction — it will still register counts on the scintillation counter. The problem isn't a missing reading, it's an uninterpretable one. Try again." },
+        { text:"The assay becomes more sensitive without a standard curve.", correct:false,
+          feedback:"Sensitivity comes from the binding chemistry itself, not from whether a calibration curve happens to exist. Skipping standards doesn't change the reaction — it just removes your ability to interpret it. Try again." }
+      ]
+    },
+    {
+      q: "Tubes are centrifuged before the antibody-hormone reaction has reached equilibrium. What's the likely result?",
+      options: [
+        { text:"Results are unaffected, since equilibrium only matters for the standard curve, not patient samples.", correct:false,
+          feedback:"Every tube — standards and patient samples alike — needs to reach the same steady binding state to be comparable. Equilibrium isn't a special requirement of the standards only. Try again." },
+        { text:"Binding hasn't stabilized yet, so bound/free measurements are inconsistent and the standard curve becomes unreliable.", correct:true,
+          feedback:"Equilibrium means the binding and unbinding of hormone to antibody has settled into a steady, reproducible state. Cutting that process short means some tubes may still be actively binding when you separate them, so bound fractions won't reliably reflect the actual competition — different tubes could give inconsistent, hard-to-interpret signals." },
+        { text:"The antibody releases all bound *H immediately.", correct:false,
+          feedback:"Cutting the incubation short doesn't strip hormone that's already bound — it just means the system hasn't finished settling into its steady state yet. Try again." },
+        { text:"Radioactive decay accelerates under non-equilibrium conditions.", correct:false,
+          feedback:"Radioactive decay is a nuclear property of the isotope itself and proceeds at a fixed rate — it has nothing to do with the chemical binding conditions in the tube. Try again." }
+      ]
+    },
+    {
+      q: "After centrifuging correctly, the technician forgets to remove the supernatant before measuring radioactivity. What happens to the reading?",
+      options: [
+        { text:"The reading is unaffected, since the scintillation counter only detects the pellet.", correct:false,
+          feedback:"A scintillation counter detects radioactivity wherever it's present in the tube — it doesn't selectively read only the pellet. Leftover free *H in the supernatant would still register. Try again." },
+        { text:"The count comes out artificially high, because free/unbound *H in the supernatant is measured along with the bound fraction.", correct:true,
+          feedback:"The scintillation counter can't distinguish bound *H from free *H — it just detects radioactivity. If the supernatant (containing unbound *H) is left in the tube, its counts get added to the bound fraction's counts, inflating the signal and making it look like more *H stayed bound than actually did." },
+        { text:"The count comes out artificially low.", correct:false,
+          feedback:"Leaving extra radioactive material in the tube can only add counts, not remove them — so the reading would rise, not fall. Try again." },
+        { text:"The tube would need to be re-centrifuged before any radioactivity is detectable at all.", correct:false,
+          feedback:"The tube was already centrifuged correctly in this scenario — the mistake is only in the next step, forgetting to remove the supernatant. Re-centrifuging isn't what's needed here. Try again." }
+      ]
+    }
+  ]
+};
+
+assays.celisa = {
+  steps: [
+    { id:1, text:"Coat all wells of a multi-well plate with the same amount of fixed antibody (Ab).", why:"This creates a consistent capture surface in every well — otherwise the wells aren't comparable to each other." },
+    { id:2, text:"Add unlabeled hormone (H) to wells at known concentrations (for the standard curve) or from a patient sample.", why:"This is the variable being tested — the whole assay exists to figure out how much H is present." },
+    { id:3, text:"Add the same amount of HRP-conjugated (labeled) hormone to all wells.", why:"This is the competitor and the eventual signal source — it has to be identical across wells so differences in color are due to H, not to the label." },
+    { id:4, text:"Allow equilibrium to be established as H and HRP-labeled hormone compete for the limited antibody binding sites.", why:"Binding needs time to stabilize before you wash, or the competition hasn't played out fairly." },
+    { id:5, text:"Wash the wells to separate bound hormone from free/unbound hormone.", why:"This is the physical step that removes everything that isn't specifically bound to the coated antibody." },
+    { id:6, text:"Add substrate (TMB) to allow the color-producing reaction to occur.", why:"TMB is converted to a colored product only where active HRP enzyme is present — this is what turns binding into a visible signal." },
+    { id:7, text:"Add acid to stop the color-changing reaction.", why:"This halts color development at a fixed, consistent point so every well is compared at the same stage of the reaction." },
+    { id:8, text:"Measure the optical density (OD) at 450 nm using a spectrophotometer.", why:"This converts the color into a number — the actual signal you'll analyze." },
+    { id:9, text:"Use the standard wells' results to build a standard curve.", why:"You need a calibration curve — OD vs. known concentration — before any unknown value means anything." },
+    { id:10, text:"Compare the patient sample's OD to the standard curve to calculate the hormone concentration.", why:"This is the payoff step: converting a measured signal into a clinically meaningful concentration." }
+  ],
+  scenarios: [
+    {
+      q: "The technician forgets to coat the wells with fixed antibody, but runs the rest of the protocol as usual. What happens?",
+      options: [
+        { text:"Nothing changes, because the labeled hormone binds directly to the plastic without needing antibody.", correct:false,
+          feedback:"The assay's capture step depends on a deliberately coated antibody layer, not on hormone sticking to plastic in a controlled, reproducible way. Try again." },
+        { text:"With no antibody present, nothing is specifically captured in the well — washing removes everything, and the wells produce little or no color regardless of hormone concentration.", correct:true,
+          feedback:"Antibody coating is what gives the well something specific to hold onto. Without it, neither the unlabeled hormone nor the HRP-labeled hormone has anything to bind — the wash step then rinses both away. With no HRP left behind, adding TMB produces little or no color, and every well reads close to zero no matter how much hormone was added, making the standard curve impossible to build." },
+        { text:"The unlabeled hormone would still be captured directly, but the labeled hormone would wash away.", correct:false,
+          feedback:"Without antibody, there's no mechanism to selectively capture one hormone and not the other — both would wash away equally. Try again." },
+        { text:"OD readings come out artificially high because more labeled hormone stays free in solution.", correct:false,
+          feedback:"Free HRP-labeled hormone floating in solution gets removed during the wash step, not measured. The real problem is too little signal, not too much. Try again." }
+      ]
+    },
+    {
+      q: "The technician forgets to add the HRP-conjugated (labeled) hormone to the wells. What happens?",
+      options: [
+        { text:"The assay still works because unlabeled hormone reacts directly with the TMB substrate.", correct:false,
+          feedback:"Unlabeled hormone has no enzymatic activity — it can't catalyze the TMB color reaction on its own. Try again." },
+        { text:"The antibody binds unlabeled hormone twice as tightly to compensate for the missing label.", correct:false,
+          feedback:"Antibody binding affinity is a fixed property of the antibody — it doesn't change based on what else is missing from the well. Try again." },
+        { text:"With no enzyme in the well, TMB has nothing to react with — the wells stay colorless and OD reads near zero no matter how much unlabeled hormone was added.", correct:true,
+          feedback:"HRP is the only enzymatic activity in the system, and it's what converts TMB into a colored product. Without the labeled hormone, there's no enzyme present at all, so the substrate step produces no color — the assay has no signal to measure, regardless of antibody coating or hormone concentration." },
+        { text:"OD comes out higher than normal because there's no competition to reduce the color signal.", correct:false,
+          feedback:"It's the opposite: with no HRP label present anywhere in the system, there's no color-producing agent at all — OD would be near zero, not elevated. Try again." }
+      ]
+    },
+    {
+      q: "The technician skips the wash step and adds TMB substrate directly. What happens to the OD readings?",
+      options: [
+        { text:"No effect — TMB only reacts with antibody-bound HRP, so unbound material doesn't matter.", correct:false,
+          feedback:"TMB reacts with any active HRP enzyme it encounters, whether that enzyme is specifically bound to the antibody or just floating free in the well. Try again." },
+        { text:"Leftover free/unbound HRP-labeled hormone still reacts with the substrate, adding extra color that doesn't reflect true binding — OD comes out artificially high and concentrations become hard to distinguish.", correct:true,
+          feedback:"Washing is what removes everything that isn't specifically captured by the antibody. Skip it, and unbound HRP-labeled hormone is still sitting in the well when TMB is added — it reacts just as readily as the bound fraction does, inflating every well's color and flattening the standard curve so it no longer reflects real differences in hormone concentration." },
+        { text:"OD comes out artificially low because unbound labeled hormone competes with the substrate for space in the well.", correct:false,
+          feedback:"Unbound HRP-labeled hormone doesn't compete with the substrate — it reacts with it, adding color rather than blocking it. Try again." },
+        { text:"The wells would need to be re-coated with antibody before results are valid.", correct:false,
+          feedback:"The antibody coating itself isn't affected by skipping a wash step — the problem is unremoved liquid, not the capture surface. Try again." }
+      ]
+    },
+    {
+      q: "The technician forgets to add acid (stop solution) after the substrate step. What happens?",
+      options: [
+        { text:"The OD reading is unaffected, since the spectrophotometer measures color regardless of how long the reaction has been running.", correct:false,
+          feedback:"OD depends directly on how far the color reaction has progressed at the moment it's read. Without a fixed stopping point, that progress keeps changing over time. Try again." },
+        { text:"The color-producing reaction keeps developing over time, so wells read at different, inconsistent points in the reaction rather than a fixed, comparable one.", correct:true,
+          feedback:"Acid halts the enzymatic reaction at a specific moment so every well is measured at the same stage of color development. Without it, the reaction keeps running — wells read sooner or later than others will show different amounts of color for the same actual hormone concentration, and readings can drift or saturate, undermining the comparability the standard curve depends on." },
+        { text:"The wells turn colorless without acid, since acid is what produces the color change.", correct:false,
+          feedback:"It's the reverse — TMB (the substrate) produces the color, and acid stops that reaction. Skipping acid means color keeps developing, not that it disappears. Try again." },
+        { text:"Skipping the acid step mainly weakens the antibody coating in the well.", correct:false,
+          feedback:"Acid is added after washing and substrate steps, long after the antibody coating step — it has no interaction with the antibody layer. Try again." }
+      ]
+    },
+    {
+      q: "Wells are washed before the antibody–hormone competition has reached equilibrium. What's the likely result?",
+      options: [
+        { text:"Results are unaffected, since equilibrium only matters for radioactive assays, not for ELISA.", correct:false,
+          feedback:"Equilibrium is a property of any competitive binding reaction, not something specific to radioactivity — it applies just as much when the label is an enzyme. Try again." },
+        { text:"Binding hasn't stabilized yet, so the amount of HRP-labeled hormone captured doesn't reflect a fair competitive endpoint, producing inconsistent OD readings and an unreliable standard curve.", correct:true,
+          feedback:"Equilibrium means the competition between unlabeled and labeled hormone for antibody sites has settled into a steady, reproducible state. Wash the wells too soon, and some may still be mid-competition, so the bound HRP–hormone doesn't represent a fair, comparable endpoint across wells — leading to noisy, unreliable results." },
+        { text:"The antibody releases all previously bound hormone immediately once washing begins.", correct:false,
+          feedback:"Cutting the incubation short doesn't strip away hormone that's already bound — it just means the competition hasn't finished settling yet. Try again." },
+        { text:"TMB reacts faster in wells that didn't reach equilibrium.", correct:false,
+          feedback:"The TMB/HRP reaction rate depends on the amount of active enzyme and reaction conditions during the substrate step — it has nothing to do with whether the earlier antibody–hormone binding reached equilibrium. Try again." }
+      ]
+    }
+  ]
+};
+
+assays.selisa = {
+  steps: [
+    { id:1, text:"Coat all wells of a multi-well plate with the same amount of fixed primary antibody (Ab1).", why:"This creates a consistent capture surface in every well, so any hormone present gets caught the same way across wells." },
+    { id:2, text:"Add unlabeled hormone (H) to wells at known concentrations (for the standard curve) or from a patient sample.", why:"This is the analyte being measured — it has to bind the capture antibody before anything else in the assay can happen." },
+    { id:3, text:"Add the same amount of free biotin-labeled secondary antibody (Ab2–biotin) to all wells.", why:"This detection antibody binds a different site on the same captured hormone molecule, forming the antibody–hormone–antibody \"sandwich\" the assay is named for." },
+    { id:4, text:"Allow equilibrium to be established.", why:"Both antibody-binding steps need time to stabilize before washing, or sandwich complexes won't be fully or consistently formed." },
+    { id:5, text:"Wash the wells to remove unbound hormone and unbound biotin-labeled secondary antibody.", why:"This leaves only the completed antibody–hormone–antibody sandwiches attached to the well." },
+    { id:6, text:"Add horseradish peroxidase (HRP) and allow it to conjugate (bind) to the biotin on the secondary antibody.", why:"This attaches the enzyme to every completed sandwich, linking the amount of captured hormone to something that can later generate a signal." },
+    { id:7, text:"Add substrate (TMB) to permit the color-changing reaction.", why:"TMB is converted to a colored product only where active HRP is present, turning the sandwiches into a visible signal." },
+    { id:8, text:"Add acid to stop the color-changing reaction.", why:"This halts color development at a fixed, consistent point so every well is compared at the same stage of the reaction." },
+    { id:9, text:"Measure the optical density at 450 nm using a spectrophotometer.", why:"This converts the color into a number — the actual signal you'll analyze." },
+    { id:10, text:"Use the standard wells' results to build a standard curve.", why:"You need a calibration curve — OD vs. known concentration — before any unknown value means anything." },
+    { id:11, text:"Compare the patient sample's OD to the standard curve to calculate the hormone concentration.", why:"This is the payoff step: converting a measured signal into a clinically meaningful concentration." }
+  ],
+  scenarios: [
+    {
+      q: "The technician forgets to coat the wells with fixed primary antibody, but runs the rest of the protocol as usual. What happens?",
+      options: [
+        { text:"Nothing changes, because hormone binds directly and firmly to the plastic without needing antibody.", correct:false,
+          feedback:"The capture step depends on a deliberately coated antibody layer, not on hormone sticking to plastic in a controlled, reproducible way. Try again." },
+        { text:"With no capture antibody present, hormone isn't held in the well — washing removes it (and the secondary antibody along with it) — so OD reads near zero regardless of hormone concentration.", correct:true,
+          feedback:"Primary antibody is what gives the well something specific to hold hormone onto. Without it, hormone has nothing to bind, so the wash step rinses it away — and with no captured hormone, the secondary antibody has nothing to attach to either. The result is little or no sandwich complex in any well, so OD reads close to zero no matter how much hormone was originally added." },
+        { text:"Only the secondary antibody step is affected; hormone would still be captured normally by the well itself.", correct:false,
+          feedback:"Hormone capture in this assay depends entirely on the primary antibody coating — without it, hormone has nothing to bind to and washes away just as easily as everything else. Try again." },
+        { text:"OD comes out higher because there's more open space in the well for hormone to sit.", correct:false,
+          feedback:"It's the opposite direction: fewer captured complexes means less enzyme gets recruited later, which means less color and lower OD — not higher. Try again." }
+      ]
+    },
+    {
+      q: "The technician forgets to add the biotin-labeled secondary antibody. What happens?",
+      options: [
+        { text:"The primary antibody's own biotin label can substitute, so results are unaffected.", correct:false,
+          feedback:"In this protocol, biotin is only on the secondary antibody — the primary (capture) antibody isn't labeled with biotin. Skipping the secondary antibody removes the only link to biotin. Try again." },
+        { text:"HRP will still bind directly to the captured hormone even without a secondary antibody.", correct:false,
+          feedback:"HRP is recruited into the complex specifically via the biotin carried by the secondary antibody — captured hormone itself has no biotin tag for HRP to attach to. Try again." },
+        { text:"Without the secondary antibody, the sandwich never forms — there's no biotin for HRP to bind, so no color develops and OD reads near zero regardless of hormone concentration.", correct:true,
+          feedback:"The secondary antibody is what completes the \"sandwich\" and carries the biotin tag that HRP later attaches to. Skip it, and even correctly captured hormone has no biotin anywhere nearby — HRP has nothing to bind, TMB has no enzyme to react with, and every well reads close to zero no matter how much hormone was present." },
+        { text:"OD comes out lower than normal but still measurable and roughly proportional to hormone amount.", correct:false,
+          feedback:"It's not just reduced — without secondary antibody there's no bridge to the enzyme at all, so there's essentially no usable signal, not a smaller proportional one. Try again." }
+      ]
+    },
+    {
+      q: "The technician forgets to add horseradish peroxidase (HRP). What happens?",
+      options: [
+        { text:"TMB will still slowly change color, since biotin itself has some enzymatic activity.", correct:false,
+          feedback:"Biotin has no enzymatic activity of its own — it's purely an attachment tag. Color generation strictly requires the HRP enzyme bound to it. Try again." },
+        { text:"It doesn't matter, since the completed antibody–hormone–antibody–biotin complex is already the detectable signal.", correct:false,
+          feedback:"The complex itself isn't visible or measurable by a spectrophotometer — only the enzyme's conversion of substrate into a colored product creates a signal that can be read as OD. Try again." },
+        { text:"With no enzyme present anywhere in the well, TMB has nothing to react with — wells stay colorless and OD reads near zero no matter how much hormone was captured.", correct:true,
+          feedback:"HRP is the only enzymatic activity in the system and the only thing that converts TMB into a colored product. Without it, even a well with plenty of correctly formed sandwich complexes has no way to generate color — the assay has no signal to measure, regardless of antibody coating or hormone concentration." },
+        { text:"OD readings become inconsistent, varying randomly from well to well.", correct:false,
+          feedback:"Missing HRP removes the color-generating step uniformly from every well — the result is a consistent lack of signal across the plate, not random variation. Try again." }
+      ]
+    },
+    {
+      q: "The technician skips the wash step (step 5) and adds HRP directly. What happens to the OD readings?",
+      options: [
+        { text:"No effect — HRP only binds biotin that's part of a completed sandwich complex.", correct:false,
+          feedback:"HRP binds essentially any accessible biotin it encounters, whether that biotin is part of a properly captured sandwich or just floating free in the well as unbound secondary antibody. Try again." },
+        { text:"Leftover unbound biotin-labeled secondary antibody is still in the well, so HRP binds to it too — adding enzyme signal that isn't tied to actual captured hormone and inflating OD across all wells.", correct:true,
+          feedback:"Washing is what removes secondary antibody that never found a captured hormone to bind. Skip it, and that free biotin-labeled antibody is still present when HRP is added — HRP binds it just as readily as it binds properly formed sandwiches, adding extra signal that has nothing to do with how much hormone was actually captured. This inflates OD and breaks the direct relationship between hormone amount and signal." },
+        { text:"OD comes out lower, because unbound secondary antibody competes with HRP for space in the well.", correct:false,
+          feedback:"Unbound biotin-labeled antibody adds extra HRP-binding sites rather than blocking them — so the effect is more signal, not less. Try again." },
+        { text:"The wells would need to be re-coated with primary antibody before results are valid.", correct:false,
+          feedback:"Primary antibody coating isn't affected by a missed wash step — the issue is only leftover unbound material that should have been rinsed away. Try again." }
+      ]
+    },
+    {
+      q: "The technician uses a secondary antibody that hasn't been labeled with biotin. What happens?",
+      options: [
+        { text:"Nothing changes, because the secondary antibody's own structure is enough for HRP to bind directly.", correct:false,
+          feedback:"HRP recruitment in this assay depends specifically on the biotin tag, not on the antibody's general structure. Without biotin, HRP has no defined attachment point on the secondary antibody. Try again." },
+        { text:"The primary antibody's biotin can substitute for the missing label on the secondary antibody.", correct:false,
+          feedback:"The primary (capture) antibody isn't biotin-labeled in this protocol either — there's no other biotin source anywhere in the system to fall back on. Try again." },
+        { text:"The sandwich complex (Ab1–hormone–Ab2) still forms normally, but with no biotin present, HRP has nothing to bind — no enzyme gets recruited, no color develops, and OD reads near zero regardless of hormone concentration.", correct:true,
+          feedback:"An unlabeled secondary antibody can still find and bind its target site on the captured hormone, so the sandwich itself forms fine. But biotin is the only thing HRP in this protocol is designed to bind — without it, HRP has nowhere to attach. The result is a well with a properly formed sandwich but no way to generate color, so OD comes out near zero no matter how much hormone was actually captured." },
+        { text:"OD comes out lower than normal, but still roughly proportional to the amount of hormone captured.", correct:false,
+          feedback:"This isn't a partial, scaled-down signal — with no biotin anywhere in the system, there's no route at all to attach the enzyme, so the signal is essentially absent rather than reduced-but-proportional. Try again." }
+      ]
+    }
+  ]
+};
+
+assays.lfa = {
+  steps: [
+    { id:1, text:"A urine sample is applied to the reaction site, which contains free anti-hCG antibody conjugated to a dye enzyme.", why:"This is the starting point — the sample first meets the antibody that will eventually detect hCG, if any is present." },
+    { id:2, text:"Capillary action begins pulling the liquid, and anything dissolved in it, from the reaction site toward the test site.", why:"Nothing on this strip is manually mixed or moved — capillary flow is what drives every step that follows." },
+    { id:3, text:"If hCG is present in the urine, it binds to the free, enzyme-labeled anti-hCG antibody in the reaction site, forming an hCG–antibody complex.", why:"This is the actual detection event — hCG becomes physically linked to the antibody that will later be captured and visualized." },
+    { id:4, text:"The hCG–antibody complex (or the free antibody alone, if no hCG is present) flows onward to the test site.", why:"The test site can only react to whatever the flow actually delivers to it — this step determines what's available to be captured there." },
+    { id:5, text:"At the test site, hCG bound to the antibody is captured by the fixed anti-hCG antibody there, and the attached enzyme converts TMB from clear to blue, producing a visible test line.", why:"This is the actual positive signal, and it can only happen if hCG was present to link the mobile antibody to the fixed one." },
+    { id:6, text:"Any excess free (unbound) enzyme-labeled anti-hCG antibody continues flowing toward the control site.", why:"Whether or not hCG was present, there's always some antibody left over to confirm the strip is working." },
+    { id:7, text:"At the control site, the free antibody is captured by the fixed anti-primary antibody, regardless of whether it's carrying hCG.", why:"The control line doesn't test for hCG at all — it only confirms that antibody and reagents flowed through the strip and functioned correctly." },
+    { id:8, text:"The enzyme captured at the control site converts TMB there from clear to blue, producing the control line and confirming the assay ran correctly.", why:"A visible control line is what makes the result — positive or negative — interpretable at all; without it, the test is invalid." }
+  ],
+  scenarios: [
+    {
+      q: "Suppose the strip were assembled in reverse, so urine flows through the control site before reaching the test site. What would happen?",
+      options: [
+        { text:"Nothing changes, since capillary action pulls liquid through both sites regardless of order.", correct:false,
+          feedback:"Order matters here because each site captures antibody based on whatever is physically available when the liquid passes through it. Whichever site the antibody reaches first gets first claim on it — reversing the order changes what's left to reach the second site. Try again." },
+        { text:"All of the free enzyme-labeled anti-hCG antibody — hCG-bound or not — would be captured at the control position first, using up the antibody supply before it ever reaches the true test site; the test line would likely never develop color, even in a genuinely hCG-positive sample.", correct:true,
+          feedback:"The control line's fixed anti-primary antibody captures any free anti-hCG antibody it encounters, whether or not that antibody is carrying hCG. If it's placed first in the flow path, it intercepts essentially all of the antibody supply — including hCG-bound complexes — before any of it can reach the actual test line. The strip can end up looking like a valid negative (a blue \"control\" line appears) even when hCG is present, because the antibody never made it to the true detection site." },
+        { text:"The test line would turn blue even without hCG present, since encountering the control site first triggers premature color development.", correct:false,
+          feedback:"Each site's chemistry is independent — being encountered first doesn't cause a site to react to something it isn't designed to bind. The control line still only binds free anti-hCG antibody, and the test line still only binds hCG-bound antibody, regardless of order. Try again." },
+        { text:"The strip would simply take longer to develop, but the final result would be identical to a correctly assembled strip.", correct:false,
+          feedback:"This isn't just a timing effect. Putting the antibody-capturing control zone first means much of the antibody supply is captured before it ever has a chance to reach the true hCG-detection site — that changes what each site is exposed to, not just how fast it happens. Try again." }
+      ]
+    },
+    {
+      q: "The dye enzyme attached to the free anti-hCG antibody has degraded on a strip stored past its expiration date. What is the most likely outcome?",
+      options: [
+        { text:"The test line would still develop normally, since hCG binding doesn't require the enzyme to be active.", correct:false,
+          feedback:"Binding of hCG to the antibodies can still happen even with a degraded enzyme — but binding alone isn't what you see. The blue color only appears because an active enzyme converts the TMB substrate; without functional enzyme, that conversion doesn't happen, so no line would appear even where binding occurred. Try again." },
+        { text:"Neither the test line nor the control line would develop color, even if all the binding steps occurred normally, since color only appears when the enzyme is active enough to convert TMB. This kind of strip should be read as invalid, not negative.", correct:true,
+          feedback:"The same enzyme-labeled antibody generates color at both the test and control sites — it's the same conjugate flowing through the whole strip. If that enzyme has degraded, no line can develop anywhere, regardless of whether hCG is present or whether binding occurred correctly. Because the control line also fails to appear, the correct interpretation is that the test is invalid, not that the result is a true negative." },
+        { text:"Only the test line would fail to develop; the control line would be unaffected because it uses a different reagent.", correct:false,
+          feedback:"Both lines rely on exactly the same enzyme-labeled antibody as it flows past each site in turn — there isn't a separate enzyme reserved just for the control line. If the enzyme is degraded, both sites are affected equally. Try again." },
+        { text:"The test would show a false positive, since a degraded enzyme reacts non-specifically with TMB.", correct:false,
+          feedback:"A degraded enzyme is less able to catalyze the color reaction, not more likely to react indiscriminately. The expected effect is a weaker or absent signal, not an artificial positive. Try again." }
+      ]
+    },
+    {
+      q: "Due to a manufacturing error, the test site has no TMB substrate (though the control site has its own). If hCG is present in the urine, what happens?",
+      options: [
+        { text:"hCG still binds correctly at the test site, but with no substrate there for the enzyme to act on, no color change occurs at the test line — while the control line still develops normally, making the strip look like a valid but negative result.", correct:true,
+          feedback:"Binding at the test line doesn't depend on TMB — that's a separate reagent that only matters for producing visible color. If TMB is missing specifically from the test site, the hCG–antibody–enzyme complex can still be captured there, it just can't generate a color change. Meanwhile, the control site has its own TMB supply and works normally, so the strip shows a control line but no test line — which looks exactly like a true negative, even though hCG is actually present. That's what makes this kind of failure especially hard to catch." },
+        { text:"Neither line would develop, since TMB is a single shared reagent for the whole strip.", correct:false,
+          feedback:"Each site's TMB substrate is local to that site in this design — the control site isn't affected by what's missing at the test site. That's exactly why the control line can still work normally even when the test site fails. Try again." },
+        { text:"Without TMB, hCG can't bind to the fixed antibody at the test site in the first place.", correct:false,
+          feedback:"The antibody–hormone binding step doesn't require TMB. TMB only comes into play afterward, converting the captured enzyme's activity into a visible color. Try again." },
+        { text:"The test line would still turn blue, just a lighter shade, since the enzyme can react with trace substrate carried over from the reaction site.", correct:false,
+          feedback:"In this design, each site holds its own dedicated substrate — there's no substrate meant to carry over from elsewhere on the strip. Without any substrate at the test site, no color reaction can occur there, not even a faint one. Try again." }
+      ]
+    },
+    {
+      q: "The fixed anti-hCG antibody at the test site is missing due to a manufacturing defect. If hCG is present in the urine, what happens?",
+      options: [
+        { text:"The hCG–antibody–enzyme complex has nothing to bind to at the test site and continues flowing to the control site — so no test line appears despite hCG being present, but the control line still develops normally.", correct:true,
+          feedback:"The test line's job is to physically capture the hCG-bound antibody complex as it flows past. Without a fixed antibody there to catch it, the complex simply continues traveling down the strip with the rest of the liquid, arriving at the control site where it's still captured (since the control site only needs free anti-primary antibody, not hCG). This produces a normal-looking control line with no test line — a false negative that's easy to miss." },
+        { text:"hCG would bind directly to the strip material itself, producing a faint line anyway.", correct:false,
+          feedback:"There's no mechanism in this design for hCG to be specifically captured by the strip material on its own — capture only happens through the antibody reagents intentionally placed at each site. Try again." },
+        { text:"The control line would fail to develop as well, since it depends on the test site capturing hCG first.", correct:false,
+          feedback:"The control site's job is independent of the test site — it captures any free anti-hCG antibody, hCG-bound or not, that passes by. It doesn't require the test site to have worked first. Try again." },
+        { text:"The test would show extra color intensity at the control line to compensate for the missing test line.", correct:false,
+          feedback:"There's no feedback mechanism between sites that increases signal at one when another fails — each site simply reacts, or doesn't, based on what actually reaches it. Try again." }
+      ]
+    },
+    {
+      q: "Too little urine is applied, and the liquid front never reaches the control site. How should this result be interpreted?",
+      options: [
+        { text:"As an invalid test, regardless of whether the test line shows any color — a valid result always requires the control line to develop, confirming the strip and reagents functioned properly.", correct:true,
+          feedback:"The control line exists specifically to confirm the assay worked as intended — that enough sample flowed through and the reagents functioned. If liquid never reaches the control site, there's no way to confirm that, so the entire result is invalid, even if the test line happens to show color." },
+        { text:"As a negative result, since no hCG reached the test site.", correct:false,
+          feedback:"Without a valid control line, you can't actually confirm the test line result means anything — there's no way to know whether the absence (or presence) of a test line reflects a real hCG result or simply insufficient sample flow. Try again." },
+        { text:"As a positive result, since limited flow tends to concentrate hCG at the test site.", correct:false,
+          feedback:"There's no mechanism by which reduced sample volume would concentrate hCG rather than simply failing to move it through the strip at all. Try again." },
+        { text:"As inconclusive only if the test line is also blank; a colored test line would still count as a valid positive.", correct:false,
+          feedback:"A test line appearing without a valid control line doesn't confirm the assay ran correctly — it could occur for unrelated reasons. The control line is the required check regardless of what the test line shows. Try again." }
+      ]
+    }
+  ]
+};
+
+// ============================================================
+// GENERIC STEP-ORDERING ENGINE
+// ============================================================
+const stepState = {};
+
+function shuffle(arr){
+  const a = [...arr];
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+function renderSteps(assayKey){
+  stepState[assayKey] = shuffle(assays[assayKey].steps);
+  drawList(assayKey);
+  const fb = document.getElementById(`order-feedback-${assayKey}`);
+  fb.className = 'order-feedback sans';
+  fb.textContent = '';
+  const reveal = document.getElementById(`correct-order-reveal-${assayKey}`);
+  reveal.className = 'correct-order-reveal card';
+  reveal.innerHTML = '';
+}
+
+function drawList(assayKey){
+  const list = document.getElementById(`step-list-${assayKey}`);
+  list.innerHTML = '';
+  stepState[assayKey].forEach((step, idx) => {
+    const li = document.createElement('li');
+    li.draggable = true;
+    li.dataset.id = step.id;
+    li.innerHTML = `
+      <div class="slot-num">${idx+1}</div>
+      <div class="step-text">${step.text}</div>
+      <div class="step-controls">
+        <button type="button" aria-label="Move up" data-dir="up">&#9650;</button>
+        <button type="button" aria-label="Move down" data-dir="down">&#9660;</button>
+      </div>
+    `;
+    list.appendChild(li);
+  });
+  attachDragHandlers(assayKey);
+  attachArrowHandlers(assayKey);
+}
+
+function attachArrowHandlers(assayKey){
+  const list = document.getElementById(`step-list-${assayKey}`);
+  list.querySelectorAll('.step-controls button').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const li = e.target.closest('li');
+      const id = parseInt(li.dataset.id);
+      const order = stepState[assayKey];
+      const idx = order.findIndex(s => s.id === id);
+      const dir = e.target.dataset.dir;
+      if(dir === 'up' && idx > 0){
+        [order[idx-1], order[idx]] = [order[idx], order[idx-1]];
+      } else if(dir === 'down' && idx < order.length - 1){
+        [order[idx+1], order[idx]] = [order[idx], order[idx+1]];
+      }
+      drawList(assayKey);
+    });
+  });
+}
+
+const dragSrc = {};
+
+function attachDragHandlers(assayKey){
+  const list = document.getElementById(`step-list-${assayKey}`);
+  const items = list.querySelectorAll('li');
+  items.forEach(li => {
+    li.addEventListener('dragstart', () => {
+      dragSrc[assayKey] = li.dataset.id;
+      li.classList.add('dragging');
+    });
+    li.addEventListener('dragend', () => {
+      li.classList.remove('dragging');
+    });
+    li.addEventListener('dragover', (e) => {
+      e.preventDefault();
+    });
+    li.addEventListener('drop', (e) => {
+      e.preventDefault();
+      const targetId = li.dataset.id;
+      const srcId = dragSrc[assayKey];
+      if(srcId === targetId) return;
+      const order = stepState[assayKey];
+      const srcIdx = order.findIndex(s => s.id == srcId);
+      const tgtIdx = order.findIndex(s => s.id == targetId);
+      const [moved] = order.splice(srcIdx, 1);
+      order.splice(tgtIdx, 0, moved);
+      drawList(assayKey);
+    });
+  });
+}
+
+function checkOrder(assayKey){
+  const list = document.getElementById(`step-list-${assayKey}`);
+  const items = list.querySelectorAll('li');
+  let correctCount = 0;
+  const total = assays[assayKey].steps.length;
+  items.forEach((li, idx) => {
+    const id = parseInt(li.dataset.id);
+    li.classList.remove('correct','incorrect');
+    if(id === idx+1){
+      li.classList.add('correct');
+      correctCount++;
+    } else {
+      li.classList.add('incorrect');
+    }
+  });
+  const fb = document.getElementById(`order-feedback-${assayKey}`);
+  fb.classList.add('show');
+  if(correctCount === total){
+    fb.className = 'order-feedback sans show all-correct';
+    fb.textContent = `All ${total} steps are in the right place. That's the full sequence.`;
+  } else {
+    fb.className = 'order-feedback sans show some-wrong';
+    fb.textContent = `${correctCount} of ${total} steps are in the right place. The highlighted rows (amber) are out of position — try moving them.`;
+  }
+}
+
+function revealOrder(assayKey){
+  const div = document.getElementById(`correct-order-reveal-${assayKey}`);
+  div.classList.add('show');
+  const ol = document.createElement('ol');
+  assays[assayKey].steps.forEach(step => {
+    const li = document.createElement('li');
+    li.innerHTML = `${step.text}<br><span class="why">${step.why}</span>`;
+    ol.appendChild(li);
+  });
+  div.innerHTML = '<h3>Correct sequence</h3>';
+  div.appendChild(ol);
+}
+
+document.querySelectorAll('[data-action]').forEach(btn => {
+  const assayKey = btn.dataset.assay;
+  const action = btn.dataset.action;
+  btn.addEventListener('click', () => {
+    if(action === 'check') checkOrder(assayKey);
+    if(action === 'reveal') revealOrder(assayKey);
+    if(action === 'reset') renderSteps(assayKey);
+  });
+});
+
+// ============================================================
+// GENERIC SCENARIO ENGINE
+// ============================================================
+function renderScenarios(assayKey){
+  const container = document.getElementById(`scenario-container-${assayKey}`);
+  const scenarios = assays[assayKey].scenarios;
+  container.innerHTML = '';
+  scenarios.forEach((sc, sIdx) => {
+    const div = document.createElement('div');
+    div.className = 'scenario';
+    const optsHtml = sc.options.map((opt, oIdx) => `
+      <div class="option" id="${assayKey}-s${sIdx}-opt${oIdx}">
+        <label>
+          <input type="radio" name="${assayKey}-scenario${sIdx}" value="${oIdx}">
+          <span>${opt.text}</span>
+        </label>
+      </div>
+    `).join('');
+    div.innerHTML = `
+      <div class="scenario-q">
+        <h3>Scenario ${sIdx+1}</h3>
+        <p>${sc.q}</p>
+        <div class="options">${optsHtml}</div>
+        <div class="explain" id="${assayKey}-explain-${sIdx}"></div>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+
+  scenarios.forEach((sc, sIdx) => {
+    sc.options.forEach((opt, oIdx) => {
+      const input = document.querySelector(`input[name="${assayKey}-scenario${sIdx}"][value="${oIdx}"]`);
+      input.addEventListener('change', () => {
+        sc.options.forEach((o2, o2Idx) => {
+          const optDiv = document.getElementById(`${assayKey}-s${sIdx}-opt${o2Idx}`);
+          optDiv.classList.remove('picked-correct','picked-incorrect');
+        });
+        const chosenDiv = document.getElementById(`${assayKey}-s${sIdx}-opt${oIdx}`);
+        chosenDiv.classList.add(opt.correct ? 'picked-correct' : 'picked-incorrect');
+
+        const explainDiv = document.getElementById(`${assayKey}-explain-${sIdx}`);
+        explainDiv.classList.remove('is-correct','is-incorrect');
+        explainDiv.classList.add('show', opt.correct ? 'is-correct' : 'is-incorrect');
+        const verdict = opt.correct ? 'Correct.' : 'Not quite — try again.';
+        explainDiv.innerHTML = `<span class="verdict">${verdict}</span>${opt.feedback}`;
+      });
+    });
+  });
+}
+
+// ============================================================
+// INITIALIZE
+// ============================================================
+['ria','celisa','selisa','lfa'].forEach(key => {
+  renderSteps(key);
+  renderScenarios(key);
+});
+</script>
+
+</body>
+</html>
